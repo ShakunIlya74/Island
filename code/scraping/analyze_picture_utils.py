@@ -21,7 +21,7 @@ def retrieve_text_from_image(image_path):
     # Timeout/terminate the tesseract job after a period of time
     try:
         output = pytesseract.image_to_string(image_path, timeout=2)  # Timeout after 2 seconds
-        print(output)
+        # print(output)
         return output
         # print(pytesseract.image_to_string('test.jpg', timeout=0.5))  # Timeout after half a second
     except RuntimeError as timeout_error:

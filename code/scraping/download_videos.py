@@ -1,15 +1,8 @@
 import time
 
-from adb_manipulator_utils import tap, swipe, make_a_screenshot
+from adb_manipulator_utils import tap, make_a_screenshot
+from scraping.adb_manipulator_utils import big_swipe_down, small_swipe_down
 from scraping.analyze_picture_utils import get_pixel_color
-
-
-def small_swipe_down(pixels_down=50):
-    swipe(740, 530, 740, 530-pixels_down)
-
-
-def big_swipe_down(pixels_down=150):
-    swipe(740, 530, 740, 530-pixels_down)
 
 
 def download_program(program_name, from_start=True):

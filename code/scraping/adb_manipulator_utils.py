@@ -48,3 +48,11 @@ def make_a_screenshot(file_name='temp_screen.png'):
 if __name__ == '__main__':
     make_a_screenshot()
     print('Screenshot saved as temp_screen.png')
+
+
+def big_swipe_down(pixels_down=150):
+    swipe(1040, 2030, 1040, 2030-pixels_down)
+
+
+def small_swipe_down(pixels_down=50):
+    swipe(740, 530, 740, 530-pixels_down)
