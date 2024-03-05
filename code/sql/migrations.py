@@ -58,8 +58,36 @@ def fill_video_meta_data():
                     file_name=video_file, name=possible_name, duration=duration_seconds)
 
 
+def create_table_ex_cat_pairs():
+    sql_execute("""
+    CREATE TABLE if not exists ex_cat_pairs (
+    ex_cat_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    exercise_id INTEGER,
+    category_id INTEGER,
+    FOREIGN KEY (exercise_id) REFERENCES exercises (exercise_id),
+    FOREIGN KEY (category_id) REFERENCES exercise_categories (category_id),
+    UNIQUE (exercise_id, category_id)
+    );
+    """)
+
+
+def fill_exercise_categories():
+    all_exercises = sql_execute("select exercise_id, default_categories from exercises;")
+    for i, (ex_id, categories) in enumerate(all_exercises):
+        if i % 100 == 0:
+            print(f"Processed exercise {i + 1}/{len(all_exercises)}: {ex_id}")
+        if categories:
+            categories = categories.split(',')
+            for cat in categories:
+                sql_execute("""INSERT OR IGNORE INTO ex_cat_pairs (exercise_id, category_id)
+                                VALUES (:exercise_id, :category_id);""",
+                            exercise_id=ex_id, category_id=cat)
+
+
 if __name__ == '__main__':
-    create_initial_db()
+    # create_initial_db()
     # print("DB created")
     # fill_video_meta_data()
+    create_table_ex_cat_pairs()
+    fill_exercise_categories()
 

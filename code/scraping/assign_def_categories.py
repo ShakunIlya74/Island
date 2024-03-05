@@ -10,7 +10,6 @@ from sql.queries import sql_execute
 import nltk
 from nltk.corpus import words
 
-nltk.download('words')
 
 list_of_categories = ['Inversion', 'Abs', 'Back', 'Beginner', 'Bodyweight', 'Calves',
                           'Chest', 'Cooldown', 'Core', 'Deadlift', 'Dips', 'Front Split',
@@ -166,10 +165,13 @@ def is_english_word(word):
 def replace_punctuation(sentence):
     return sentence.replace(',', '').replace('.', '').replace('!', '').replace('?', '').replace(';', '').replace(':', '')\
         .replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('{', '').replace('}', '').replace('<', '')\
-        .replace('>', '').replace('/', '').replace('\\', '').replace('|', '').replace('\'', '').replace('\"', '')
+        .replace('>', '').replace('/', '').replace('\\', '').replace('|', '').replace('\'', '').replace('\"', '').replace('_', '').replace('-', '')
+
 
 def clean_scraped_exercises():
-    all_exercises = sql_execute("select exercise_id, exercise_name from exercises;")
+    nltk.download('words')
+
+    all_exercises = sql_execute("select exercise_id, exercise_name from exercises where video_id is null;")
     all_exercises = sorted(all_exercises, key=lambda x: x[0])
     for ex_id, ex_name in all_exercises:
         ex_name = replace_punctuation(ex_name)
@@ -180,9 +182,30 @@ def clean_scraped_exercises():
                 not_english += 1
         if not_english > 2:
             print(f"{ex_name}")
-            sql_execute("delete from exercises where exercise_id=:exercise_id", exercise_id=ex_id)
+            sql_execute("delete from exercises where exercise_id=:exercise_id and video_id is null", exercise_id=ex_id)
         if ex_id % 100 == 0:
             print(f"Processed {ex_id} exercises")
+
+
+def assign_videos_to_exercises_with_full_name():
+    all_exercises = sql_execute("select exercise_id, exercise_name from exercises;")
+    all_videos = sql_execute("select video_id, file_name from videos;")
+    found_video_ids = []
+    for i, (ex_id, ex_name) in enumerate(all_exercises):
+        if i % 100 == 0:
+            print(f"Processed {i} exercises")
+        ex_name = replace_punctuation(ex_name).replace(' ', '').lower()
+        # print(f"Processing {ex_name}")
+        for vid_id, vid_name in all_videos:
+            if vid_id in found_video_ids:
+                continue
+            vid_name = replace_punctuation(vid_name).replace(' ', '').lower()
+            if ex_name in vid_name:
+                print(f"Matched {ex_name} with {vid_name}")
+                found_video_ids.append(vid_id)
+                sql_execute("update exercises set video_id=:video_id where exercise_id=:exercise_id",
+                            video_id=vid_id, exercise_id=ex_id)
+                break
 
 
 if __name__ == '__main__':
@@ -192,6 +215,5 @@ if __name__ == '__main__':
     # print(exercises)
 
     clean_scraped_exercises()
-
-    # print(is_english_word())
+    # assign_videos_to_exercises_with_full_name()
 
